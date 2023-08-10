@@ -1,6 +1,6 @@
 <template>
 	<div class="container">
-		<h1>Create Product</h1>
+		<h1>{{ action }} Product</h1>
 		<div class="form">
 			<div class="mb-3">
 				<label for="name" class="form-label">Name</label>
@@ -11,7 +11,7 @@
 				<textarea class="form-control" id="details" placeholder="Product details" rows="3" v-model="product.details"></textarea>
 			</div>
 			<div>
-				<button class="btn btn-primary" @click="createClicked($event)" ref="createButton">Create</button>
+				<button class="btn btn-primary" @click="actionClicked($event)" ref="actionButton">{{ action }}</button>
 			</div>
 		</div>
 	</div>
@@ -20,12 +20,15 @@
 <script setup lang="ts">
 	import { ref } from 'vue';
 	import type { Ref } from 'vue';
-	import { useRouter } from 'vue-router';
+	import { useRouter, useRoute } from 'vue-router'
 
 	import type { Product } from '@/models/Products';
 
 	let router = useRouter();
-	let createButton: HTMLButtonElement;
+	let route = useRoute();
+	let action: string = 'Create';
+	let actionButton: HTMLButtonElement;
+	let id: number;
 	let productsUrl = `${import.meta.env.VITE_API_URL}/products`;
 	let product: Ref<Product> = ref({
 		id: 0,
@@ -35,16 +38,53 @@
 		updated_at: new Date
 	});
 
-	function createClicked(event: MouseEvent) {
-		if (product.value.name && product.value.details) {
-			createButton.disabled = true;
+	if (route.params.product) {
+		action = 'Update';
+		id = +route.params.product;
 
-			fetch(productsUrl, {
+		loadProduct(id);
+	}
+
+	function loadProduct(id: number) {
+		fetch(`${productsUrl}/${id}`, {
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json'
+			}
+		})
+			.then(response => {
+				if (response.ok) {
+					return response.json() as Promise<Product>;
+				}
+
+				throw new Error(response.statusText);
+			})
+			.then(response => {
+				product.value = response;
+			})
+			.catch(error => {
+				console.error(error);
+			});
+	}
+
+	function actionClicked(event: MouseEvent) {
+		if (product.value.name && product.value.details) {
+			actionButton.disabled = true;
+
+			let url = productsUrl;
+			let body = {
+				name: product.value.name,
+				details: product.value.details
+			};
+
+			if (action.toLowerCase() === 'update') {
+				url += `/${id}`;
+				Object.assign(body, { _method: 'PATCH' });
+			}
+
+			fetch(url, {
 				method: 'POST',
-				body: JSON.stringify({
-					name: product.value.name,
-					details: product.value.details
-				}),
+				body: JSON.stringify(body),
 				headers: {
 					'Content-Type': 'application/json',
 					'Accept': 'application/json'
@@ -62,7 +102,7 @@
 					throw new Error(response.statusText);
 				})
 				.then(response => {
-					createButton.disabled = false;
+					actionButton.disabled = false;
 					router.push('/products');
 				})
 				.catch(error => {
