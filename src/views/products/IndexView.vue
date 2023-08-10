@@ -37,8 +37,8 @@
 						<td>{{ item.name }}</td>
 						<td>{{ item.details }}</td>
 						<td class="actions">
-							<button class="edit btn btn-primary">Edit</button>
-							<button class="edit btn btn-danger">Delete</button>
+							<RouterLink class="edit btn btn-primary" :to="`/products/${item.id}`">Edit</RouterLink>
+							<button class="delete btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#delete-modal" @click="deleteId = item.id">Delete</button>
 						</td>
 					</tr>
 				</tbody>
@@ -61,6 +61,20 @@
 				</ul>
 			</nav>
 		</div>
+		<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5">Are your sure you want to delete this product?</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" ref="closeButton">Close</button>
+						<button type="button" class="btn btn-danger" ref="deleteButton" @click="deleteClicked($event)">Delete</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -74,6 +88,9 @@
 
 	let productsUrl = `${import.meta.env.VITE_API_URL}/products`;
 	let search: string = '';
+	let closeButton: HTMLButtonElement;
+	let deleteButton: HTMLButtonElement;
+	let deleteId: Ref<number> = ref(0);
 	let items: Ref<Product[]> = ref([]);
 	let currentPage: Ref<number> = ref(1);
 	let lastPage: Ref<number> = ref(1);
@@ -97,6 +114,42 @@
 		}
 		else {
 			loadProducts(currentPage.value);
+		}
+	}
+
+	function deleteClicked(event: MouseEvent) {
+		if (deleteId.value) {
+			deleteButton.disabled = true;
+
+			fetch(`${productsUrl}/${deleteId.value}`, {
+				method: 'POST',
+				body: JSON.stringify({
+					_method: 'DELETE'
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json'
+				}
+			})
+				.then(response => {
+					if (response.ok) {
+						if (response.status === 200) {
+							return response.json() as Promise<Product>;
+						}
+
+						return null;
+					}
+
+					throw new Error(response.statusText);
+				})
+				.then(response => {
+					loadProducts(currentPage.value);
+					deleteButton.disabled = false;
+					closeButton.click();
+				})
+				.catch(error => {
+					console.error(error);
+				});
 		}
 	}
 

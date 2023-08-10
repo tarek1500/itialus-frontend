@@ -1,4 +1,5 @@
 import './assets/main.css'
+import 'bootstrap/js/dist/modal.js'
 
 import { createApp } from 'vue'
 import App from './App.vue'
