@@ -10,7 +10,7 @@
 						<input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="search" v-model="search">
 						<button class="btn btn-secondary" type="button" id="search" @click="searchClicked($event)">Search</button>
 					</div>
-					<button class="create btn btn-success"></button>
+					<RouterLink class="create btn btn-success" to="/products/create">Create New</RouterLink>
 				</div>
 			</div>
 		</div>
