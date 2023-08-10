@@ -8,7 +8,7 @@
 				<div class="option d-flex justify-content-end">
 					<div class="search input-group">
 						<input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="search" v-model="search">
-						<button class="btn btn-secondary" type="button" id="search" @click="searchClicked($event)">Search</button>
+						<button class="btn btn-secondary" type="button" @click="searchClicked($event)">Search</button>
 					</div>
 					<RouterLink class="create btn btn-success" to="/products/create">Create New</RouterLink>
 				</div>
@@ -46,15 +46,15 @@
 			<nav aria-label="Page navigation">
 				<ul class="pagination justify-content-end">
 					<li :class="{ 'page-item': true, 'disabled': currentPage === 1 }">
-						<a class="page-link" :href="`${productsUrl}?page=${previousPage}`" aria-label="Previous" @click="previousPageClicked($event)">
+						<a class="page-link" :href="`${productsUrl}?page=${previousPage}`" aria-label="Previous" @click.prevent="previousPageClicked($event)">
 							<span aria-hidden="true">&laquo;</span>
 						</a>
 					</li>
 					<li v-for="page in lastPage" :class="{ 'page-item': true, 'active': currentPage === page }">
-						<a class="page-link" :href="`${productsUrl}?page=${page}`" @click="pageClicked($event, page)">{{ page }}</a>
+						<a class="page-link" :href="`${productsUrl}?page=${page}`" @click.prevent="pageClicked($event, page)">{{ page }}</a>
 					</li>
 					<li :class="{ 'page-item': true, 'disabled': currentPage === lastPage }">
-						<a class="page-link" :href="`${productsUrl}?page=${nextPage}`" aria-label="Next" @click="nextPageClicked($event)">
+						<a class="page-link" :href="`${productsUrl}?page=${nextPage}`" aria-label="Next" @click.prevent="nextPageClicked($event)">
 							<span aria-hidden="true">&raquo;</span>
 						</a>
 					</li>
@@ -154,20 +154,14 @@
 	}
 
 	function previousPageClicked(event: MouseEvent) {
-		event.preventDefault();
-
 		loadProducts(previousPage.value);
 	}
 
 	function nextPageClicked(event: MouseEvent) {
-		event.preventDefault();
-
 		loadProducts(nextPage.value);
 	}
 
 	function pageClicked(event: MouseEvent, page: number) {
-		event.preventDefault();
-
 		loadProducts(page);
 	}
 
