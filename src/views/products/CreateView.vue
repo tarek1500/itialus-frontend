@@ -1,19 +1,19 @@
 <template>
 	<div class="container">
 		<h1>{{ action }} Product</h1>
-		<div class="form">
+		<form class="form" @submit.prevent="formSubmitted($event)">
 			<div class="mb-3">
 				<label for="name" class="form-label">Name</label>
-				<input type="text" class="form-control" id="name" placeholder="Product name" v-model="product.name">
+				<input type="text" class="form-control" placeholder="Product name" v-model="product.name" required>
 			</div>
 			<div class="mb-3">
 				<label for="details" class="form-label">Details</label>
-				<textarea class="form-control" id="details" placeholder="Product details" rows="3" v-model="product.details"></textarea>
+				<textarea class="form-control" placeholder="Product details" rows="3" v-model="product.details" required></textarea>
 			</div>
 			<div>
-				<button class="btn btn-primary" @click="actionClicked($event)" ref="actionButton">{{ action }}</button>
+				<button class="btn btn-primary" type="submit" ref="actionButton">{{ action }}</button>
 			</div>
-		</div>
+		</form>
 	</div>
 </template>
 
@@ -67,48 +67,46 @@
 			});
 	}
 
-	function actionClicked(event: MouseEvent) {
-		if (product.value.name && product.value.details) {
-			actionButton.disabled = true;
+	function formSubmitted(event: Event) {
+		actionButton.disabled = true;
 
-			let url = productsUrl;
-			let body = {
-				name: product.value.name,
-				details: product.value.details
-			};
+		let url = productsUrl;
+		let body = {
+			name: product.value.name,
+			details: product.value.details
+		};
 
-			if (action.toLowerCase() === 'update') {
-				url += `/${id}`;
-				Object.assign(body, { _method: 'PATCH' });
+		if (action.toLowerCase() === 'update') {
+			url += `/${id}`;
+			Object.assign(body, { _method: 'PATCH' });
+		}
+
+		fetch(url, {
+			method: 'POST',
+			body: JSON.stringify(body),
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json'
 			}
-
-			fetch(url, {
-				method: 'POST',
-				body: JSON.stringify(body),
-				headers: {
-					'Content-Type': 'application/json',
-					'Accept': 'application/json'
-				}
-			})
-				.then(response => {
-					if (response.ok) {
-						if (response.status === 200) {
-							return response.json() as Promise<Product>;
-						}
-
-						return null;
+		})
+			.then(response => {
+				if (response.ok) {
+					if (response.status === 200) {
+						return response.json() as Promise<Product>;
 					}
 
-					throw new Error(response.statusText);
-				})
-				.then(response => {
-					actionButton.disabled = false;
-					router.push('/products');
-				})
-				.catch(error => {
-					console.error(error);
-				});
-		}
+					return null;
+				}
+
+				throw new Error(response.statusText);
+			})
+			.then(response => {
+				actionButton.disabled = false;
+				router.push('/products');
+			})
+			.catch(error => {
+				console.error(error);
+			});
 	}
 </script>
 
